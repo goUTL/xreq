@@ -42,6 +42,10 @@ func TestNewRequest(t *testing.T) {
 		t.Fatalf("Request{q: %T}, want Request{q: map[string]*string}", r.q)
 	}
 
+	if reflect.TypeOf(r.h) != reflect.TypeOf(map[string]*string{}) {
+		t.Fatalf("Request{h: %T}, want Request{h: map[string]*string}", r.h)
+	}
+
 	if r == nil {
 		t.Fatal("NewRequest() = <nil>, want *Request{}")
 	}
@@ -52,6 +56,10 @@ func TestNewRequest(t *testing.T) {
 
 	if r.q == nil {
 		t.Fatalf("Request{q: %v}, want Request{q: map[string]*string{}}", r.q)
+	}
+
+	if r.h == nil {
+		t.Fatalf("Request{h: %v}, want Request{h: map[string]*string{}}", r.h)
 	}
 
 	if r.r.Method != http.MethodGet {
@@ -85,5 +93,30 @@ func TestRequest_Query(t *testing.T) {
 	r.Query(parameter, nil)
 	if _, ok := r.q[parameter]; ok {
 		t.Errorf("this query %p was not deleted", &query)
+	}
+}
+
+func TestRequest_Header(t *testing.T) {
+
+	r := NewRequest("host", "path")
+
+	name := "HN"
+	header := "HV"
+
+	// Add header.
+	r.Header(name, &header)
+	if _, ok := r.h[name]; !ok {
+		t.Errorf("this header %p was not added", &header)
+	}
+
+	// Checking pointer.
+	if _, ok := r.h[name]; ok && r.h[name] != &header {
+		t.Errorf("this header %p, want %p", r.h[name], &header)
+	}
+
+	// Delete header.
+	r.Header(name, nil)
+	if _, ok := r.h[name]; ok {
+		t.Errorf("this header %p was not deleted", &header)
 	}
 }

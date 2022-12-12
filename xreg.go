@@ -24,14 +24,15 @@ import (
 
 type Request struct {
 	r *http.Request      // HTTP request
-	q map[string]*string // URL queries
+	q map[string]*string // сontains the request queries
+	h map[string]*string // сontains the request header
 }
 
 // NewRequest wraps http.NewRequestWith.
 func NewRequest(host, path string) *Request {
 	r, e := http.NewRequest(http.MethodGet, fmt.Sprintf("https://%s/%s", host, strings.TrimPrefix(path, "/")), nil)
 	xlog.Fatalln(e)
-	return &Request{r: r, q: map[string]*string{}}
+	return &Request{r: r, q: map[string]*string{}, h: map[string]*string{}}
 }
 
 // Query adds the value to parameter.
@@ -40,5 +41,14 @@ func (r *Request) Query(parameter string, value *string) {
 		r.q[parameter] = value
 	} else {
 		delete(r.q, parameter)
+	}
+}
+
+// Header adds the value to parameter.
+func (r *Request) Header(name string, value *string) {
+	if value != nil {
+		r.h[name] = value
+	} else {
+		delete(r.h, name)
 	}
 }
