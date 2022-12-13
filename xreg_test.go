@@ -22,6 +22,7 @@ package xreq
 
 import (
 	"net/http"
+	"net/textproto"
 	"reflect"
 	"testing"
 )
@@ -98,25 +99,26 @@ func TestRequest_Query(t *testing.T) {
 
 func TestRequest_Header(t *testing.T) {
 
+	var header any
+	var pointer *string
 	r := NewRequest("host", "path")
 
-	name := "HN"
-	header := "HV"
-
-	// Add header.
-	r.Header(name, &header)
-	if _, ok := r.h[name]; !ok {
-		t.Errorf("this header %p was not added", &header)
+	// New header.
+	if header = r.Header("name", "value"); reflect.TypeOf(header) != reflect.TypeOf(pointer) {
+		t.Fatalf("Request.Header() = %T, want *string", header)
+	} else if header.(*string) == nil {
+		t.Fatal("Request.Header() = <nil>, want *string()")
+	} else {
+		pointer = header.(*string)
 	}
 
-	// Checking pointer.
-	if _, ok := r.h[name]; ok && r.h[name] != &header {
-		t.Errorf("this header %p, want %p", r.h[name], &header)
+	// Header was is added.
+	if len(r.r.Header.Values("name")) == 0 {
+		t.Fatal("header was not added")
 	}
 
-	// Delete header.
-	r.Header(name, nil)
-	if _, ok := r.h[name]; ok {
-		t.Errorf("this header %p was not deleted", &header)
+	// Pointer comparison which has been added to the map header and with the returned method.
+	if h := &r.r.Header[textproto.CanonicalMIMEHeaderKey("name")][0]; pointer != h {
+		t.Fatalf("Request.Header() = %p, want %p", pointer, h)
 	}
 }
