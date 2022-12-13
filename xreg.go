@@ -17,7 +17,6 @@ package xreq
 import (
 	"fmt"
 	"net/http"
-	"net/textproto"
 	"strings"
 
 	"github.com/goUTL/xlog"
@@ -46,7 +45,10 @@ func (r *Request) Query(parameter string, value *string) {
 }
 
 // Header adds the value to parameter.
-func (r *Request) Header(name string, value string) *string {
-	r.r.Header.Set(name, value)
-	return &r.r.Header[textproto.CanonicalMIMEHeaderKey(name)][0]
+func (r *Request) Header(name string, value *string) {
+	if value != nil {
+		r.h[name] = value
+	} else {
+		delete(r.h, name)
+	}
 }
