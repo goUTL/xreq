@@ -23,32 +23,33 @@ import (
 )
 
 type Request struct {
-	r *http.Request      // HTTP request
-	q map[string]*string // сontains the request queries
-	h map[string]*string // сontains the request header
+	// r *string // HTTP request
+	req *http.Request      // HTTP request
+	qry map[string]*string // сontains the request queries
+	hdr map[string]*string // сontains the request header
 }
 
 // NewRequest wraps http.NewRequestWith.
 func NewRequest(host, path string) *Request {
 	r, e := http.NewRequest(http.MethodGet, fmt.Sprintf("https://%s/%s", host, strings.TrimPrefix(path, "/")), nil)
 	xlog.Fatalln(e)
-	return &Request{r: r, q: map[string]*string{}, h: map[string]*string{}}
+	return &Request{req: r, qry: map[string]*string{}, hdr: map[string]*string{}}
 }
 
 // Query adds the value to parameter.
 func (r *Request) Query(parameter string, value *string) {
 	if value != nil {
-		r.q[parameter] = value
+		r.qry[parameter] = value
 	} else {
-		delete(r.q, parameter)
+		delete(r.qry, parameter)
 	}
 }
 
 // Header adds the value to parameter.
 func (r *Request) Header(name string, value *string) {
 	if value != nil {
-		r.h[name] = value
+		r.hdr[name] = value
 	} else {
-		delete(r.h, name)
+		delete(r.hdr, name)
 	}
 }

@@ -31,44 +31,44 @@ func TestNewRequest(t *testing.T) {
 	r := NewRequest("host", "path")
 
 	if reflect.TypeOf(r) != reflect.TypeOf(&Request{}) {
-		t.Fatalf("NewRequest() = %T, want *Request", r)
+		t.Fatalf("xreq.NewRequest() = %T, want *xreq.Request", r)
+	} else if r == nil {
+		t.Fatal("xreq.NewRequest() = <nil>, want &xreq.Request{}")
 	}
 
-	if reflect.TypeOf(r.r) != reflect.TypeOf(&http.Request{}) {
-		t.Fatalf("Request{r: %T}, want Request{r: *http.Request}", r.r)
-	}
+	t.Run("req", func(t *testing.T) {
+		if reflect.TypeOf(r.req) != reflect.TypeOf(&http.Request{}) {
+			t.Fatalf("xreq.NewRequest().req = %T, want *http.Request", r.req)
+		} else if r.req == nil {
+			t.Fatal("xreq.NewRequest().req = <nil>, want &http.Request{}")
+		}
 
-	if reflect.TypeOf(r.q) != reflect.TypeOf(map[string]*string{}) {
-		t.Fatalf("Request{q: %T}, want Request{q: map[string]*string}", r.q)
-	}
+		t.Run("method", func(t *testing.T) {
+			if r.req.Method != http.MethodGet {
+				t.Errorf("xreq.NewRequest().req.Method = \"%s\", want \"GET\"", r.req.Method)
+			}
+		})
 
-	if reflect.TypeOf(r.h) != reflect.TypeOf(map[string]*string{}) {
-		t.Fatalf("Request{h: %T}, want Request{h: map[string]*string}", r.h)
-	}
+		t.Run("scheme", func(t *testing.T) {
+			if r.req.URL.Scheme != "https" {
+				t.Errorf("xreq.NewRequest().req.URL.Scheme = \"%s\", want \"https\"", r.req.URL.Scheme)
+			}
+		})
+	})
 
-	if r == nil {
-		t.Fatal("NewRequest() = <nil>, want *Request{}")
-	}
+	t.Run("qry", func(t *testing.T) {
+		w := map[string]*string{}
+		if r.qry == nil || reflect.TypeOf(r.qry) != reflect.TypeOf(w) {
+			t.Errorf("xreq.NewRequest().qry = %#v, want %#v", r.qry, w)
+		}
+	})
 
-	if r.r == nil {
-		t.Fatalf("Request{r: %v}, want Request{r: *http.Request{}}", r.r)
-	}
-
-	if r.q == nil {
-		t.Fatalf("Request{q: %v}, want Request{q: map[string]*string{}}", r.q)
-	}
-
-	if r.h == nil {
-		t.Fatalf("Request{h: %v}, want Request{h: map[string]*string{}}", r.h)
-	}
-
-	if r.r.Method != http.MethodGet {
-		t.Fatalf("Method = %s, want GET", r.r.Method)
-	}
-
-	if r.r.URL.String() != "https://host/path" {
-		t.Fatalf("URL = %s, want https://host/path", r.r.URL.String())
-	}
+	t.Run("hdr", func(t *testing.T) {
+		w := map[string]*string{}
+		if r.hdr == nil || reflect.TypeOf(r.hdr) != reflect.TypeOf(w) {
+			t.Errorf("xreq.NewRequest().hdr = %#v, want %#v", r.hdr, w)
+		}
+	})
 }
 
 func TestRequest_Query(t *testing.T) {
@@ -80,18 +80,18 @@ func TestRequest_Query(t *testing.T) {
 
 	// Add query.
 	r.Query(parameter, &query)
-	if _, ok := r.q[parameter]; !ok {
+	if _, ok := r.qry[parameter]; !ok {
 		t.Errorf("this query %p was not added", &query)
 	}
 
 	// Checking pointer.
-	if _, ok := r.q[parameter]; ok && r.q[parameter] != &query {
-		t.Errorf("this query %p, want %p", r.q[parameter], &query)
+	if _, ok := r.qry[parameter]; ok && r.qry[parameter] != &query {
+		t.Errorf("this query %p, want %p", r.qry[parameter], &query)
 	}
 
 	// Delete query.
 	r.Query(parameter, nil)
-	if _, ok := r.q[parameter]; ok {
+	if _, ok := r.qry[parameter]; ok {
 		t.Errorf("this query %p was not deleted", &query)
 	}
 }
@@ -105,18 +105,18 @@ func TestRequest_Header(t *testing.T) {
 
 	// Add header.
 	r.Header(name, &header)
-	if _, ok := r.h[name]; !ok {
+	if _, ok := r.hdr[name]; !ok {
 		t.Errorf("this header %p was not added", &header)
 	}
 
 	// Checking pointer.
-	if _, ok := r.h[name]; ok && r.h[name] != &header {
-		t.Errorf("this header %p, want %p", r.h[name], &header)
+	if _, ok := r.hdr[name]; ok && r.hdr[name] != &header {
+		t.Errorf("this header %p, want %p", r.hdr[name], &header)
 	}
 
 	// Delete header.
 	r.Header(name, nil)
-	if _, ok := r.h[name]; ok {
+	if _, ok := r.hdr[name]; ok {
 		t.Errorf("this header %p was not deleted", &header)
 	}
 }
