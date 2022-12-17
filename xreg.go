@@ -23,7 +23,6 @@ import (
 )
 
 type Request struct {
-	// r *string // HTTP request
 	req *http.Request      // HTTP request
 	qry map[string]*string // сontains the request queries
 	hdr map[string]*string // сontains the request header
